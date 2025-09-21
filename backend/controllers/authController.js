@@ -27,11 +27,8 @@ export const register = async (req, res) => {
     const { email, password, username, full_name, avatar_url } = value;
 
     // Sign up user with Supabase Auth
-<<<<<<< HEAD
-=======
     console.log('Attempting to register user:', { email, username, full_name });
     
->>>>>>> anik
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -40,22 +37,12 @@ export const register = async (req, res) => {
           username,
           full_name,
           avatar_url: avatar_url || null
-<<<<<<< HEAD
-        }
-=======
         },
         emailRedirectTo: undefined // Disable email confirmation for development
->>>>>>> anik
       }
     });
 
     if (authError) {
-<<<<<<< HEAD
-      return res.status(400).json({
-        success: false,
-        message: 'Registration failed',
-        error: authError.message
-=======
       console.error('Supabase registration error:', authError);
       
       // Handle specific error cases
@@ -79,7 +66,6 @@ export const register = async (req, res) => {
         success: false,
         message: 'Registration failed',
         error: authError.message || 'An error occurred during registration'
->>>>>>> anik
       });
     }
 
