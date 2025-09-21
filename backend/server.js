@@ -3,6 +3,7 @@ import cors from 'cors'
 import 'dotenv/config'
 import { supabase } from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
+import devAuthRoutes from './routes/devAuthRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import documentRoutes from './routes/documentRoutes.js'
 import clauseRoutes from './routes/clauseRoutes.js'
@@ -19,7 +20,22 @@ const app = express()
 const port= process.env.PORT || 5100
 
 app.use(express.json())
-app.use(cors())
+
+// Configure CORS
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions))
 
 app.get('/', (req, res) => {
   res.send('Backend is working perfectly!')
@@ -40,8 +56,43 @@ app.get('/test-gemini', async (req, res) => {
   }
 })
 
+// Test Supabase connection
+app.get('/test-supabase', async (req, res) => {
+  try {
+    // Test basic Supabase connection by checking auth
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      res.json({
+        success: false,
+        message: 'Supabase connection test failed',
+        error: error.message
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Supabase connected successfully',
+        hasSession: !!data.session
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Supabase connection test failed',
+      error: error.message
+    });
+  }
+})
+
 // API routes
-app.use('/api/auth', authRoutes)
+// Use development auth routes if DEV_AUTH is enabled
+const useDevAuth = process.env.DEV_AUTH === 'true';
+if (useDevAuth) {
+  console.log('🔧 Using development authentication mode');
+  app.use('/api/auth', devAuthRoutes);
+} else {
+  console.log('🔐 Using Supabase authentication mode');
+  app.use('/api/auth', authRoutes);
+}
 app.use('/api/upload', uploadRoutes)
 app.use('/api/documents', documentRoutes)
 app.use('/api/clauses', clauseRoutes)

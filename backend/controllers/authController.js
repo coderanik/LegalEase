@@ -27,6 +27,8 @@ export const register = async (req, res) => {
     const { email, password, username, full_name, avatar_url } = value;
 
     // Sign up user with Supabase Auth
+    console.log('Attempting to register user:', { email, username, full_name });
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -35,15 +37,35 @@ export const register = async (req, res) => {
           username,
           full_name,
           avatar_url: avatar_url || null
-        }
+        },
+        emailRedirectTo: undefined // Disable email confirmation for development
       }
     });
 
     if (authError) {
+      console.error('Supabase registration error:', authError);
+      
+      // Handle specific error cases
+      if (authError.message.includes('Email address') && authError.message.includes('invalid')) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email address format. Please use a valid email address.',
+          error: 'Please ensure your email address is properly formatted (e.g., user@example.com)'
+        });
+      }
+      
+      if (authError.message.includes('User already registered')) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists',
+          error: 'An account with this email address already exists. Please try logging in instead.'
+        });
+      }
+      
       return res.status(400).json({
         success: false,
         message: 'Registration failed',
-        error: authError.message
+        error: authError.message || 'An error occurred during registration'
       });
     }
 

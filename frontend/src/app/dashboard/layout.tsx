@@ -16,6 +16,8 @@ import {
   X
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuthStore } from '@/lib/store/authStore';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -33,22 +35,32 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen relative">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-64 flex-col glass-sidebar">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
+              <div className="h-8 w-8 bg-blue-400/20 backdrop-blur-sm border border-blue-400/30 rounded-lg flex items-center justify-center">
+                <span className="text-blue-400 font-bold text-sm">L</span>
               </div>
-              <span className="text-xl font-bold">Legalify</span>
+              <span className="text-xl font-bold text-white">Legalify</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 text-white" />
             </Button>
           </div>
           <nav className="flex-1 px-4 py-4 space-y-2">
@@ -58,10 +70,10 @@ export default function DashboardLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-blue-400/20 text-blue-300 border border-blue-400/30 backdrop-blur-sm'
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white backdrop-blur-sm'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -71,12 +83,14 @@ export default function DashboardLayout({
               );
             })}
           </nav>
-          <div className="border-t p-4">
-            <Button variant="ghost" className="w-full justify-start" asChild>
-              <Link href="/">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Link>
+          <div className="border-t border-white/10 p-4">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-white hover:bg-white/10"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
           </div>
         </div>
@@ -84,13 +98,13 @@ export default function DashboardLayout({
 
       {/* Desktop sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white border-r">
+        <div className="flex flex-col flex-grow glass-sidebar">
           <div className="flex h-16 items-center px-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
+              <div className="h-8 w-8 bg-blue-400/20 backdrop-blur-sm border border-blue-400/30 rounded-lg flex items-center justify-center">
+                <span className="text-blue-400 font-bold text-sm">L</span>
               </div>
-              <span className="text-xl font-bold">Legalify</span>
+              <span className="text-xl font-bold text-white">Legalify</span>
             </div>
           </div>
           <nav className="flex-1 px-4 py-4 space-y-2">
@@ -100,10 +114,10 @@ export default function DashboardLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-blue-400/20 text-blue-300 border border-blue-400/30 backdrop-blur-sm'
+                      : 'text-gray-300 hover:bg-white/10 hover:text-white backdrop-blur-sm'
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
@@ -112,12 +126,14 @@ export default function DashboardLayout({
               );
             })}
           </nav>
-          <div className="border-t p-4">
-            <Button variant="ghost" className="w-full justify-start" asChild>
-              <Link href="/">
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Link>
+          <div className="border-t border-white/10 p-4">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start text-white hover:bg-white/10"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
           </div>
         </div>
@@ -126,19 +142,19 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 bg-white border-b">
+        <div className="sticky top-0 z-40 glass-header">
           <div className="flex h-16 items-center justify-between px-4">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="lg:hidden text-white hover:bg-white/10"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </Button>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                Welcome back, <span className="font-medium">John Doe</span>
+              <div className="text-sm text-gray-300">
+                Welcome back, <span className="font-medium text-white">{user?.full_name || user?.username || 'User'}</span>
               </div>
             </div>
           </div>
@@ -149,6 +165,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }
